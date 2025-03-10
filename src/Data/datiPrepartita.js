@@ -1,37 +1,54 @@
-const datiPrepartita = [
+export const datiPrepartita = [
   {
-    id: 1,
-    title: "CONTRATTURA",
+    id: 11,
+    title: "Contrattura",
     description: "Il giocatore estratto salterà la partita per infortunio.",
     isImprev: true,
     ultEstrazione: true,
     baseEstrazione: 11,
     numbExtrPlayer: 1,
+    weight: 15,
   },
   {
-    id: 2,
+    id: 12,
     title: "Raccomandato",
     description: "Schiera titolare il peggior giocatore in rosa per 90'",
     isImprev: true,
     ultEstrazione: false,
     numbExtrPlayer: 0,
+    weight: 10,
   },
   {
-    id: 3,
+    id: 13,
     title: "Veterano",
     description: "Schiera titolare il giocatore più vecchio in rosa.",
     isImprev: true,
     ultEstrazione: false,
     numbExtrPlayer: 0,
+    weight: 10,
   },
   {
-    id: 4,
+    id: 14,
     title: "Sotto pressione",
-    description: "Se il tuo miglior giocatore offensivo non segna salta la prossima partita",
+    description:
+      "Se il tuo miglior giocatore offensivo non segna salta la prossima partita",
     isImprev: true,
     ultEstrazione: false,
     numbExtrPlayer: 0,
+    weight: 15,
+  },
+  {
+    id: 15,
+    title: "PAROLA ALLA COMMUNITY!",
+    isImprev: true,
+    ultEstrazione: false,
+    numbExtrPlayer: 0,
+    weight: 15,
+  },
+  {
+    id: 999,
+    title: "Nessun imprevisto",
+    isImprev: false,
+    weight: 15,
   },
 ];
-
-export default datiPrepartita;

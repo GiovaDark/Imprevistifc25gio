@@ -1,23 +1,13 @@
-import { useState, useEffect } from "react";
 import { supabase } from "../supabaseClient";
 import { motion } from "framer-motion";
 import { MdClear } from "react-icons/md";
-import datiPrepartita from "../Data/datiPrepartita";
-import datiRari from "../Data/datiRari";
-import datiMenoFrequenti from "../Data/datiMenoFrequenti";
+import {datiPrepartita} from "../Data/datiPrepartita";
+import {datiMenoFrequenti} from "../Data/datiMenoFrequenti";
 import datiSettimana from "../Data/datiSettimana";
+import useFetchData from "../Hooks/useFetchData";
 
 const RiepilogoImprevisti = () => {
-  const [vociRegistro, setVociRegistro] = useState([]);
-
-  useEffect(() => {
-    fetchRegistryList();
-  }, [vociRegistro]);
-
-  const fetchRegistryList = async () => {
-    const { data } = await supabase.from("imprevisti").select("*");
-    setVociRegistro(data ? data : []);
-  };
+  const {data : vociRegistro, fetchRegistryList} = useFetchData("imprevisti")
 
   const removeVociRegistro = async (element) => {
     const { error } = await supabase
@@ -25,9 +15,10 @@ const RiepilogoImprevisti = () => {
       .delete()
       .eq("id", element);
     error && console.log(error);
+    fetchRegistryList()
   };
 
-  const datiPrepartitaGlobali = [...datiPrepartita, ...datiMenoFrequenti, ...datiRari]
+  const datiPrepartitaGlobali = [...datiPrepartita, ...datiMenoFrequenti]
 
   return (
     <section className="flex h-full w-full flex-col items-center justify-center gap-12 p-4 font-bold">

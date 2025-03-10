@@ -1,13 +1,28 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from "../supabaseClient";
+import {
+  bonusCessioni,
+  bonusTrofei,
+  malusAcquisti,
+  trendPrestazioni,
+  piazzamentoCampionato,
+} from "../Data/datiSaldoPunti";
 import { GrPowerReset } from "react-icons/gr";
-import { LiaTrophySolid } from "react-icons/lia";
-import { GiLaurelsTrophy, GiTrophyCup } from "react-icons/gi";
-import { IoMdTrendingUp } from "react-icons/io";
 import { LuArrowUpWideNarrow, LuArrowDownWideNarrow } from "react-icons/lu";
 
 const SaldoPunti = () => {
   const [data, setData] = useState([]);
+  const [isOver32, setIsOver32] = useState(false);
+  const [isSerieMinore, setIsSerieMinore] = useState(false);
+
+  const checkisOver = () => {
+    setIsOver32(!isOver32);
+    setIsSerieMinore(false);
+  };
+  const checkisSerieMinore = () => {
+    setIsSerieMinore(!isSerieMinore);
+    setIsOver32(false);
+  };
 
   const fetchSaldo = async () => {
     let { data: saldo_punti, error } = await supabase
@@ -19,91 +34,33 @@ const SaldoPunti = () => {
   const { id, punti } = data ? data : {};
 
   const updateSaldoPunti = async (val) => {
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from("saldo-punti")
-      .update({ punti: punti + val > 0 ? punti + val : 0 })
+      .update({
+        punti: punti + val,
+      })
       .eq("id", id)
       .select();
-    data ? console.log("data: ", data) : console.log("error: ", error);
+    error && console.log("error: ", error);
+    fetchSaldo();
   };
 
   useEffect(() => {
     fetchSaldo();
-  }, [data]);
+  }, []);
 
   const resetPunti = async () => {
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from("saldo-punti")
       .update({ punti: 10 })
       .eq("id", id)
       .select();
-    data ? console.log("data: ", data) : console.log("error: ", error);
+    error && console.log("error: ", error);
+    fetchSaldo();
   };
 
-  const bonusCompetizioni = [
-    {
-      id: "cmp01",
-      nome: "Promozione +10",
-      valore: 10,
-      icon: <IoMdTrendingUp size={36} className="mb-1" />,
-    },
-    {
-      id: "cmp02",
-      nome: "Coppa Nazionale +10",
-      valore: 10,
-      icon: <GiTrophyCup size={32} className="mb-1" />,
-    },
-    {
-      id: "cmp03",
-      nome: "Scudetto +18",
-      valore: 18,
-      icon: <LiaTrophySolid size={36} className="mb-1" />,
-    },
-    {
-      id: "cmp04",
-      nome: "Coppa Europea +30",
-      valore: 30,
-      icon: <GiLaurelsTrophy size={36} className="mb-1" />,
-    },
-  ];
-  const bonusCessioni = [
-    {
-      id: "c01",
-      nome: "≥70 +1",
-      valore: 1,
-    },
-    {
-      id: "c03",
-      nome: "≥80 +3",
-      valore: 3,
-    },
-    {
-      id: "c05",
-      nome: "≥90 +5",
-      valore: 5,
-    },
-  ];
-
-  const malusAcquisti = [
-    {
-      id: "a03",
-      nome: "≥70 -3",
-      valore: -3,
-    },
-    {
-      id: "a09",
-      nome: "≥80 -9",
-      valore: -9,
-    },
-    {
-      id: "a15",
-      nome: "≥90 -15",
-      valore: -15,
-    },
-  ];
-
   const bonusMalusStyle =
-    "flex flex-col cursor-pointer py-4 border-none hover:border items-center justify-center rounded-xl hover:bg-purple-700/60";
+    "flex flex-col cursor-pointer text-center text-base p-2 border-none hover:border items-center justify-center rounded-xl hover:text-black hover:bg-[--clr-ter]";
 
   const mappedCessioni = bonusCessioni.map((el) => (
     <div
@@ -118,13 +75,39 @@ const SaldoPunti = () => {
   const mappedAcquisti = malusAcquisti.map((el) => (
     <div
       key={el.id}
+      onClick={() =>
+        updateSaldoPunti(isOver32 ? el.valoreOver : isSerieMinore ? el.valoreSerieMinore : el.valoreUnder)
+      }
+      className={bonusMalusStyle}
+    >
+      {isOver32
+        ? el.nomeOver
+        : isSerieMinore
+          ? el.nomeSerieMinori
+          : el.nomeUnder}
+    </div>
+  ));
+  const mappedTrofei = bonusTrofei.map((el) => (
+    <div
+      key={el.id}
       onClick={() => updateSaldoPunti(el.valore)}
       className={bonusMalusStyle}
     >
+      {el.icon}
       {el.nome}
     </div>
   ));
-  const mappedCompetizioni = bonusCompetizioni.map((el) => (
+  const mappedTrend = trendPrestazioni.map((el) => (
+    <div
+      key={el.id}
+      onClick={() => updateSaldoPunti(el.valore)}
+      className={bonusMalusStyle}
+    >
+      {el.icon}
+      {el.nome}
+    </div>
+  ));
+  const mappedPiazzamento = piazzamentoCampionato.map((el) => (
     <div
       key={el.id}
       onClick={() => updateSaldoPunti(el.valore)}
@@ -139,19 +122,17 @@ const SaldoPunti = () => {
     <>
       <main
         id="saldo-punti"
-        className="flex h-full w-full flex-col items-center justify-between gap-4 bg-black/30 px-4 py-6"
+        className="flex h-full w-full select-none flex-col items-center justify-between gap-2 bg-black/30 py-4"
       >
-        <h1 className="relative pb-4">Saldo Punti </h1>
         <section
           id="saldoPunti"
-          className="hover:bg-700/80 flex h-1/3 w-full flex-col items-center justify-around font-bold"
+          className="hover:bg-700/80 flex h-1/4 w-full flex-col items-center justify-around font-bold"
         >
-          <h2 className="text-2xl">Attuale</h2>
-
-          <h3 className="text-8xl font-black">{punti}</h3>
-          <div className="absolute right-2 flex flex-col items-center p-2">
+          <h1 className="relative">Saldo Punti</h1>
+          <h3 className="text-7xl font-black italic">{punti}</h3>
+          <div className="absolute right-2 mt-12 flex flex-col items-center justify-around p-2">
             <GrPowerReset
-              size={36}
+              size={32}
               className="peer cursor-pointer hover:animate-spin hover:stroke-purple-700 active:scale-150"
               onClick={resetPunti}
             />
@@ -160,38 +141,91 @@ const SaldoPunti = () => {
             </span>
           </div>
         </section>
-
-        {/* COMPETIZIONI */}
-
-        <section
-          id="bonusCompetizioni"
-          className="flex h-1/3 w-full flex-col items-center justify-around gap-2 rounded-xl border-2 border-purple-700/60 p-2 text-lg font-bold transition-all duration-300 ease-in-out hover:border-gray-200 hover:bg-black/30"
-        >
-          <h2 className="text-3xl">Competizioni</h2>
-          <div className="grid h-auto w-full grid-cols-4 justify-center gap-2 p-2">
-            {mappedCompetizioni}
-          </div>
-        </section>
-
         {/* CESSIONI */}
 
         <section
           id="acquistiCessioni"
-          className="flex h-1/3 w-full items-center gap-4 text-lg font-bold"
+          className="flex h-1/4 w-full items-center gap-1 text-lg font-bold"
         >
-          <div className="flex h-full w-1/2 flex-col items-center justify-around gap-2 rounded-xl border-2 border-purple-700/60 transition-all duration-300 ease-in-out hover:border-gray-200 hover:bg-black/30">
-            <h2 className="text-3xl">Cessioni</h2>
-            <LuArrowUpWideNarrow size={36} />
-            <div className="grid h-auto w-full grid-cols-3 justify-center gap-2 p-2">
+          <div className="flex h-full w-1/2 flex-col items-center justify-around rounded-xl border-2 border-purple-700/60 transition-all duration-300 ease-in-out hover:border-gray-200 hover:bg-purple-800/30">
+            <h2 className="inline-flex items-center text-lg">
+              Cessioni Mercato
+              <LuArrowUpWideNarrow className="mx-3 inline-block" size={28} />
+            </h2>
+            <div className="grid h-auto w-full grid-cols-5 justify-center">
               {mappedCessioni}
             </div>
           </div>
-          <div className="flex h-full w-1/2 flex-col items-center justify-around rounded-xl border-2 border-purple-700/60 transition-all duration-300 ease-in-out hover:border-gray-200 hover:bg-black/30">
-            <h2 className="text-3xl">Acquisti</h2>
-            <LuArrowDownWideNarrow size={36} />
-            <div className="grid h-auto w-full grid-cols-3 justify-center gap-2 p-2">
+          <div className="relative flex h-full w-1/2 flex-col items-center justify-around rounded-xl border-2 border-purple-700/60 transition-all duration-300 ease-in-out hover:border-gray-200 hover:bg-purple-800/30">
+            <h2 className="inline-flex items-center text-lg">
+              Acquisti Mercato
+              <LuArrowDownWideNarrow className="mx-3 inline-block" size={28} />
+            </h2>
+            <div className="grid h-auto w-full grid-cols-5 justify-center">
               {mappedAcquisti}
             </div>
+            {/* TOGGLE SERIE MINORE */}
+            <div className="absolute left-1 top-1 flex items-center gap-2 p-2 text-xs">
+              <label
+                htmlFor="switch-link"
+                className={`cursor-pointer font-sans antialiased ${isSerieMinore && "border-b-2 border-b-[--clr-ter] text-[--clr-ter]"}`}
+              >
+                Serie Minore<span>{isSerieMinore ? " " : "?"}</span>
+              </label>
+              <input
+                id="switch-link"
+                type="checkbox"
+                checked={isSerieMinore}
+                onChange={checkisSerieMinore}
+                className="relative inline-block h-4 w-8 cursor-pointer appearance-none rounded-full before:absolute before:left-0 before:top-0 before:inline-block before:h-full before:w-full before:rounded-full before:bg-stone-400 before:transition-colors before:duration-200 before:ease-in after:absolute after:left-0 after:top-2/4 after:h-6 after:w-6 after:-translate-y-2/4 after:rounded-full after:border after:border-stone-500 after:bg-stone-600 after:transition-all after:duration-200 after:ease-in checked:before:bg-stone-200 checked:after:translate-x-1/2 checked:after:border-stone-200 disabled:cursor-not-allowed disabled:opacity-50 dark:checked:after:bg-purple-600"
+              />
+            </div>
+            {/* TOGGLE OVER 32 */}
+            <div className="absolute right-1 top-1 flex items-center gap-2 p-2 text-xs">
+              <label
+                htmlFor="switch-link"
+                className={`cursor-pointer font-sans antialiased ${isOver32 && "border-b-2 border-b-[--clr-ter] text-[--clr-ter]"}`}
+              >
+                Over 32<span>{isOver32 ? " " : "?"}</span>
+                </label>
+              <input
+                id="switch-link"
+                type="checkbox"
+                checked={isOver32}
+                onChange={checkisOver}
+                className="relative inline-block h-4 w-8 cursor-pointer appearance-none rounded-full before:absolute before:left-0 before:top-0 before:inline-block before:h-full before:w-full before:rounded-full before:bg-stone-400 before:transition-colors before:duration-200 before:ease-in after:absolute after:left-0 after:top-2/4 after:h-6 after:w-6 after:-translate-y-2/4 after:rounded-full after:border after:border-stone-500 after:bg-stone-600 after:transition-all after:duration-200 after:ease-in checked:before:bg-stone-200 checked:after:translate-x-1/2 checked:after:border-stone-200 disabled:cursor-not-allowed disabled:opacity-50 dark:checked:after:bg-purple-600"
+              />
+            </div>
+          </div>
+        </section>
+
+        {/* COMPETIZIONI */}
+
+        <section
+          id="trendPrestazioni"
+          className="flex h-1/4 w-full flex-col items-center justify-around rounded-xl border-2 border-purple-700/60 p-1 text-lg font-bold transition-all duration-300 ease-in-out hover:border-gray-200 hover:bg-purple-800/30"
+        >
+          <h2 className="text-lg">Trend delle Prestazioni</h2>
+          <div className="grid h-auto w-full grid-cols-2 justify-center">
+            {mappedTrend}
+          </div>
+        </section>
+        <section
+          id="piazzamentoCampionato"
+          className="flex h-1/4 w-full flex-col items-center justify-around rounded-xl border-2 border-purple-700/60 p-1 text-lg font-bold transition-all duration-300 ease-in-out hover:border-gray-200 hover:bg-purple-800/30"
+        >
+          <h2 className="text-lg">Piazzamento in Campionato</h2>
+          <div className="grid h-auto w-full grid-cols-8 justify-center">
+            {mappedPiazzamento}
+          </div>
+        </section>
+        <section
+          id="bonusTrofei"
+          className="flex h-1/4 w-full flex-col items-center justify-around rounded-xl border-2 border-purple-700/60 p-1 text-lg font-bold transition-all duration-300 ease-in-out hover:border-gray-200 hover:bg-purple-800/30"
+        >
+          <h2 className="text-lg">Trofei Conquistati</h2>
+          <div className="grid h-auto w-full grid-cols-5 justify-center">
+            {mappedTrofei}
           </div>
         </section>
       </main>

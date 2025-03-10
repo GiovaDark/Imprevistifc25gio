@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import Dado from "../Components/Dado";
 import { motion } from "framer-motion";
@@ -8,8 +8,10 @@ import { supabase } from "../supabaseClient";
 import { v4 as uuidv4 } from "uuid";
 import { MdArrowForward } from "react-icons/md";
 import BonusAnnuali from "../Components/BonusAnnuali";
+import useFetchData from "../Hooks/useFetchData";
 
 const IngaggiMercatoRinnovi = (props) => {
+  const {data: vociRegistro, fetchRegistryList} = useFetchData("registroo")
   const [casuale, setCasuale] = useState(null);
 
   const estraiNumeroCasuale = () => {
@@ -19,8 +21,6 @@ const IngaggiMercatoRinnovi = (props) => {
   const isImpr = casuale === 7;
 
   const inputRef = useRef(null);
-
-  const [vociRegistro, setVociRegistro] = useState([]);
 
   const tipoImprevisto = props.tipoImprevisto;
 
@@ -56,15 +56,6 @@ const IngaggiMercatoRinnovi = (props) => {
     (el) => el.tipo !== tipoImprevisto,
   );
 
-  useEffect(() => {
-    fetchRegistryList();
-  }, [vociRegistro]);
-
-  const fetchRegistryList = async () => {
-    const { data } = await supabase.from("registroo").select("*");
-    setVociRegistro(data ? data : []);
-  };
-
   const uploadListDB = async (list) => {
     const { data, error } = await supabase
       .from("registroo")
@@ -78,6 +69,7 @@ const IngaggiMercatoRinnovi = (props) => {
       ])
       .select();
     data ? console.log() : console.log("error: ", error);
+    fetchRegistryList();
   };
 
   const deleteListDB = async () => {
@@ -86,6 +78,7 @@ const IngaggiMercatoRinnovi = (props) => {
       .delete("name")
       .neq("name", null);
     error && console.log(error);
+    fetchRegistryList();
   };
 
   const removeVociRegistro = async (element) => {
@@ -94,6 +87,7 @@ const IngaggiMercatoRinnovi = (props) => {
       .delete()
       .eq("id", element);
     error && console.log(error);
+    fetchRegistryList();
   };
 
   return (
@@ -139,9 +133,9 @@ const IngaggiMercatoRinnovi = (props) => {
             </h3>
             <p
               style={{
-                filter: "andika-regular drop-shadow(.05rem .05rem 0.1rem #000)",
+                filter: "drop-shadow(.05rem .05rem 0.1rem #000)",
               }}
-              className="mt-4 px-4 text-2xl md:w-3/5 md:text-4xl"
+              className="mt-4 px-4 text-2xl md:w-3/5 md:text-4xl andika-regular"
             >
               {isImpr ? descrIsImpr : descrNoImpr}
             </p>
@@ -164,7 +158,7 @@ const IngaggiMercatoRinnovi = (props) => {
                 />
                 <button
                   type="button"
-                  className="h-10 w-1/2 rounded-lg bg-sky-700 px-2 py-2 text-center text-sm font-bold text-gray-300 shadow-md transition duration-200 ease-in hover:bg-sky-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2  focus:ring-offset-indigo-200 "
+                  className="h-10 w-1/2 rounded-lg bg-purple-700 px-2 py-2 text-center text-sm font-bold text-gray-300 shadow-md transition duration-200 ease-in hover:bg-purple-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2  focus:ring-offset-indigo-200 "
                   onClick={() =>
                     uploadListDB({
                       id: uuidv4(),
@@ -230,7 +224,7 @@ const IngaggiMercatoRinnovi = (props) => {
         />
       </motion.div>
 
-      {Dado(estraiNumeroCasuale)}
+      {<Dado clickFunc={estraiNumeroCasuale} />}
     </section>
   );
 };

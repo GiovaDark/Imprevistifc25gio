@@ -1,44 +1,57 @@
-import { useState, useEffect } from "react";
+/* eslint-disable react-hooks/exhaustive-deps */
+import { useEffect } from "react";
+import SecondaEstrazioneDiretta from "../Components/SecondaEstrazioneDiretta";
+import RimandaImprevisto from "./RimandaImprevisto";
 import { supabase } from "../supabaseClient";
+import capitalize from "lodash.capitalize";
 
-export default function FetchData() {
-  const [imprevisto, setImprevisto] = useState([]);
+const FetchImprevisto = (props) => {
+  const { casualeCommunity } = props;
 
-  useEffect(() => {
-    fetchLista();
-  }, []);
-
-  useEffect(() => {
-    setTimeout(() => {
-      delElemento();
-    }, 3000);
-  });
-
-  const fetchLista = async () => {
-    const { data } = await supabase
-      .from("random_sort")
-      .select("*")
-      .limit(1)
-      .single();
-    setImprevisto(data ? data : { id: 0, descrizione: "LISTA VUOTA!!!" });
-  };
+  const { id, titolo, descrizione, ultEstrazione, qtGiocatori, titolariRosa } =
+    casualeCommunity;
 
   const delElemento = async () => {
-    const { error } = await supabase
-      .from("imprevisti")
-      .delete("id")
-      .eq("id", imprevisto.id);
+    const { error } = await supabase.from("imprevisti").delete().eq("id", id);
     error && console.log(error);
   };
 
-  return (
-    <p
-      className={`andika-regular h-fit flex items-center justify-center flex-1 overflow-y-auto px-4 ${
-        imprevisto.descrizione && imprevisto.descrizione.length > 200 ? "text-sm md:text-xl" : "text-xl md:text-3xl"
-      }`}
-    >
-      {imprevisto.descrizione}
+  useEffect(() => {
+    let timeout = setTimeout(() => {
+      id !== 0 && delElemento();
+      timeout = null;
+    }, 3000);
+    // Cleanup del timeout per evitare memory leak
+    return () => clearTimeout(timeout);
+  }, []);
 
-    </p>
+  return (
+    <section
+      id="fetchImprevisto"
+      className="flex h-full w-4/5 flex-col items-center justify-between gap-2"
+    >
+      <h3
+        style={{ filter: "drop-shadow(.05rem .05rem 0.1rem #000)" }}
+        className="text-4xl font-extrabold uppercase"
+      >
+        {titolo && titolo}
+      </h3>
+      <p
+        className={`andika-regular flex h-fit items-center justify-center overflow-y-auto px-4 scrollbar ${
+          descrizione && descrizione.length > 200 ? "text-lg" : "text-2xl"
+        }`}
+      >
+        {capitalize(descrizione)}
+      </p>
+      {ultEstrazione && (
+        <SecondaEstrazioneDiretta
+          numbExtrPlayer={qtGiocatori}
+          baseEstrazione={titolariRosa}
+        />
+      )}
+      <RimandaImprevisto id={id} titolo={titolo} descrizione={descrizione} />
+    </section>
   );
-}
+};
+
+export default FetchImprevisto;

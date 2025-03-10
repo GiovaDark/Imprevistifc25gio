@@ -2,7 +2,6 @@ import React, { useContext } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MdAddCircleOutline, MdRemoveCircleOutline } from "react-icons/md";
 import { CartContext } from "../context/regContext";
-import uuid from "react-uuid";
 
 const RegistroSerieNegativa = () => {
   const { cartItems, addToCart, removeFromCart, clearCart } =
@@ -12,9 +11,9 @@ const RegistroSerieNegativa = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ delay: 0.7, duration: 0.7 }}
-      className="absolute bottom-1 left-1 top-1 hidden h-[98%] w-[24vw] items-center gap-2 overflow-hidden rounded-lg bg-black/50 text-gray-300 md:flex md:flex-col"
+      className="absolute bottom-1 left-1 top-1 hidden h-[98%] w-[24vw] items-center gap-2 overflow-hidden rounded-lg bg-black/90 text-gray-300 md:flex md:flex-col"
     >
-      <h6 className="uppercase text-[--clr-prim]">Registro Serie Negativa</h6>
+      <h6 className="uppercase text-[--clr-prim]">Registro Giocatori</h6>
       <AnimatePresence initial={false} mode="popLayout">
         <ul className="flex h-full w-full flex-col gap-1 overflow-y-auto px-1 pb-2">
           {cartItems.map((item) => (
@@ -30,7 +29,7 @@ const RegistroSerieNegativa = () => {
                   : {}
               }
               className="flex items-center justify-between bg-gray-700/20 ps-1 text-left text-[0.6rem] uppercase"
-              key={uuid()}
+              key={item.id}
             >
               <small className="text-xs font-semibold uppercase md:text-sm">
                 {item.title}
